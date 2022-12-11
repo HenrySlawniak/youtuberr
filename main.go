@@ -9,35 +9,84 @@ import (
 	"os/exec"
 	"path/filepath"
 	"sync"
+	"time"
+
+	"golang.org/x/xerrors"
 )
 
 var (
 	links []string
 	wg    = sync.WaitGroup{}
+	tick  time.Duration
 
 	limit           = flag.Int("limit", 0, "Limit the number of videos to download per channel")
 	baseDownloadDir = flag.String("dir", "./dl-youtuberr", "Base directory to download videos to")
 	inputFile       = flag.String("input", "links.txt", "File to read links from")
 	cookiesFile     = flag.String("cookies", "cookies.txt", "File to read cookies from")
+	listMode        = flag.String("list-mode", "serial", "Mode to run in. parallel, or serial.")
+	once            = flag.Bool("run-once", false, "Run once and exit")
+	tickerDuration  = flag.String("ticker", "1h", "Duration to wait between runs")
 )
 
 func init() {
 	flag.Parse()
+	var err error
+	tick, err = time.ParseDuration(*tickerDuration)
+	if err != nil {
+		panic(xerrors.Errorf("failed to parse ticker duration: %w", err))
+	}
+
+	tick = time.Hour
 }
 
 func main() {
 	err := ensureBinaries()
 	if err != nil {
-		panic(err)
+		panic(xerrors.Errorf("failed to ensure binaries: %w", err))
 	}
 
 	err = loadLinks()
 	if err != nil {
-		panic(err)
+		panic(xerrors.Errorf("failed to load links: %w", err))
 	}
 
 	fmt.Printf("Loaded %d links\n", len(links))
 
+	if *once {
+		work()
+	} else {
+		ticker := time.NewTicker(tick)
+		work()
+
+		for {
+			select {
+			case <-ticker.C:
+				work()
+			}
+		}
+	}
+
+}
+
+func work() {
+	switch *listMode {
+	case "parallel":
+		runParallel()
+	case "serial":
+		runSerial()
+	default:
+		fmt.Printf("Invalid list mode, %s is not defined, defaulting to serial\n", *listMode)
+		runSerial()
+	}
+}
+
+func runSerial() {
+	for _, link := range links {
+		runLinkDownload(link, *limit)
+	}
+}
+
+func runParallel() {
 	for _, link := range links {
 		wg.Add(1)
 		go runLinkDownload(link, *limit)
