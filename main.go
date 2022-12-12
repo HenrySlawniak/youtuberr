@@ -88,7 +88,6 @@ func runSerial() {
 
 func runParallel() {
 	for _, link := range links {
-		wg.Add(1)
 		go runLinkDownload(link, *limit)
 	}
 
@@ -138,6 +137,7 @@ func loadLinks() error {
 }
 
 func runLinkDownload(link string, limit int) {
+	wg.Add(1)
 	defer wg.Done()
 
 	hasher := md5.New()
