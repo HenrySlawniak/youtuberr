@@ -26,6 +26,7 @@ var (
 	listMode        = flag.String("list-mode", "serial", "Mode to run in. parallel, or serial.")
 	once            = flag.Bool("run-once", false, "Run once and exit")
 	tickerDuration  = flag.String("ticker", "1h", "Duration to wait between runs")
+	limitRate       = flag.String("limit-rate", "2M", "Limit the download rate to this value. 0 for no limit.")
 )
 
 func init() {
@@ -174,10 +175,10 @@ func runLinkDownload(link string, limit int) {
 		"--cookies", *cookiesFile,
 		"-f", "bestvideo+bestaudio",
 		"--download-archive", filepath.Join(*baseDownloadDir, archiveName),
-		"--limit-rate", "2M",
+		"--limit-rate", *limitRate,
 		"-P", "temp:.temp",
 		"--max-downloads", fmt.Sprintf("%d", limit),
-		"-o", filepath.Join(*baseDownloadDir, "%(uploader)s - %(channel_id)s/%(upload_date)s - %(title)s-%(id)s.%(ext)s"),
+		"-o", filepath.Join(*baseDownloadDir, "%(uploader)s [%(channel_id)s]/%(upload_date)s - %(title)s [%(id)s].%(ext)s"),
 		link,
 	)
 
