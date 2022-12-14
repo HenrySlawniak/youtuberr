@@ -148,11 +148,16 @@ func runLinkDownload(link string, limit int) {
 
 	fmt.Printf("%s => %s\n", archiveName, link)
 
+	progressOption := "--no-progress"
+	if *listMode == "serial" || len(links) == 1 {
+		progressOption = "--progress"
+	}
+
 	cmd := exec.Command(
 		"yt-dlp",
 		"-i",
 		"--restrict-filenames",
-		"--no-progress",
+		progressOption,
 		"--add-metadata",
 		"--write-info-json",
 		"--write-description",
@@ -170,6 +175,7 @@ func runLinkDownload(link string, limit int) {
 		"-f", "bestvideo+bestaudio",
 		"--download-archive", filepath.Join(*baseDownloadDir, archiveName),
 		"--limit-rate", "2M",
+		"-P", "temp:.temp",
 		"--max-downloads", fmt.Sprintf("%d", limit),
 		"-o", filepath.Join(*baseDownloadDir, "%(uploader)s - %(channel_id)s/%(upload_date)s - %(title)s-%(id)s.%(ext)s"),
 		link,
