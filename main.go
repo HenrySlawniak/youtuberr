@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"crypto/md5"
 	"flag"
 	"fmt"
 	"os"
@@ -137,15 +136,11 @@ func loadLinks() error {
 	return nil
 }
 
+const archiveName = "youtuberr.txt"
+
 func runLinkDownload(link string, limit int) {
 	wg.Add(1)
 	defer wg.Done()
-
-	hasher := md5.New()
-	hasher.Write([]byte(link))
-	hash := hasher.Sum(nil)
-
-	archiveName := fmt.Sprintf("dl-%x.txt", hash)
 
 	fmt.Printf("%s => %s\n", archiveName, link)
 
