@@ -173,6 +173,7 @@ func runLinkDownload(link string, limit int) {
 		"--limit-rate", *limitRate,
 		"-P", "temp:.temp",
 		"--max-downloads", fmt.Sprintf("%d", limit),
+		"--print", "after_move:filepath",
 		"-o", filepath.Join(*baseDownloadDir, "%(uploader)s [%(channel_id)s]/%(upload_date)s - %(title)s [%(id)s].%(ext)s"),
 		link,
 	)
